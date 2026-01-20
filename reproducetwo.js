@@ -1,13 +1,18 @@
 const taskArray = [];
 
+const toDoTasks = JSON.parse(localStorage.getItem("myTasks"));
 
-
+if (toDoTasks) {
+  taskArray.push(...toDoTasks);
+  renderTasks();
+}
 
 const taskInput = document.querySelector("#taskInput");
 const addBtn = document.querySelector("#addBtn");
 
 addBtn.addEventListener("click", function () {
   handleAddTask(taskInput);
+  saveToStorage();
 });
 
 function handleAddTask(inputValues) {
@@ -20,17 +25,25 @@ function handleAddTask(inputValues) {
   }
 }
 
-function loadFromStorage(){
-  
-}
-
-function saveToStorage(){
-
+function saveToStorage() {
+  localStorage.setItem("myTasks", JSON.stringify(taskArray));
 }
 
 function addTasks(tasks) {
   taskArray.push({ text: tasks, completed: false, isEditing: false });
+  saveToStorage()
   renderTasks();
+}
+
+function handleEditTask(index, editValues) {
+  const editItem = editValues.value.trim();
+  if (editItem === "") {
+    alert("Please enter a task");
+  } else {
+    taskArray[index].text = editItem;
+    saveToStorage();
+    editValues.value = "";
+  }
 }
 
 function renderTasks() {
@@ -39,16 +52,6 @@ function renderTasks() {
 
   for (let i = 0; i < taskArray.length; i++) {
     const li = document.createElement("li");
-
-    function handleEditTask(editValues) {
-      const editItem = editValues.value.trim();
-      if (editItem === "") {
-        alert("Please enter a task");
-      } else {
-        taskArray[i].text = editItem;
-        editValues.value = "";
-      }
-    }
 
     if (taskArray[i].isEditing === false) {
       li.innerHTML = `<div><input type="checkbox" class="ticker">  <span class="taskDisplay">${taskArray[i].text}</span></div> 
@@ -63,6 +66,7 @@ function renderTasks() {
 
       checkBox.addEventListener("change", function () {
         taskArray[i].completed = checkBox.checked;
+        saveToStorage();
         renderTasks();
       });
 
@@ -70,12 +74,12 @@ function renderTasks() {
       deletebtn.addEventListener("click", function (e) {
         e.stopPropagation();
         taskArray.splice(i, 1);
+        saveToStorage();
         renderTasks();
       });
       const editBtn = li.querySelector(".editBtn");
       editBtn.addEventListener("click", function (e) {
         e.stopPropagation();
-
         taskArray[i].isEditing = true;
         renderTasks();
       });
@@ -83,24 +87,25 @@ function renderTasks() {
       li.innerHTML = `<div>
       <input 
         type="text" 
-        id="editInput" 
+        class="editInput" 
         placeholder="Enter a new task"
       />
-      <button id="newAddBtn">New</button><button id="cancelBtn">C/N</button>
+      <button class="newAddBtn">New</button><button class="cancelBtn">C/N</button>
     </div>`;
 
-      const editInput = li.querySelector("#editInput");
-      const newAddBtn = li.querySelector("#newAddBtn");
-      const cancelBtn = li.querySelector("#cancelBtn");
+      const editInput = li.querySelector(".editInput");
+      const newAddBtn = li.querySelector(".newAddBtn");
+      const cancelBtn = li.querySelector(".cancelBtn");
 
       newAddBtn.addEventListener("click", function () {
-        handleEditTask(editInput);
+        handleEditTask(i, editInput);
         taskArray[i].isEditing = false;
         renderTasks();
       });
 
       cancelBtn.addEventListener("click", function () {
         taskArray[i].isEditing = false;
+        saveToStorage();
         renderTasks();
       });
     }
